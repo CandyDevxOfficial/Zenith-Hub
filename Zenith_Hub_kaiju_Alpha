@@ -1,0 +1,166 @@
+-- ระบบ Anti-Ban Bypass & Anti-Kick
+local mt = getrawmetatable(game)
+local oldNamecall = mt.__namecall
+setreadonly(mt, false)
+
+mt.__namecall = newcclosure(function(self, ...)
+    local method = getnamecallmethod()
+    local args = {...}
+    if tostring(method) == "Kick" or tostring(method) == "reportAbuse" then
+        return nil
+    end
+    return oldNamecall(self, unpack(args))
+end)
+setreadonly(mt, true)
+
+-- ส่วนของ UI
+local ScreenGui = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local UICornerMain = Instance.new("UICorner")
+local Title = Instance.new("TextLabel")
+local SpeedInput = Instance.new("TextBox")
+local UICornerInput = Instance.new("UICorner")
+local StartBtn = Instance.new("TextButton")
+local UICornerBtn = Instance.new("UICorner")
+local ToggleBtn = Instance.new("TextButton") 
+local OpenBtn = Instance.new("TextButton") 
+local UICornerOpen = Instance.new("UICorner")
+
+ScreenGui.Parent = game.CoreGui
+
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
+MainFrame.Position = UDim2.new(0.5, -100, 0.4, 0)
+MainFrame.Size = UDim2.new(0, 200, 0, 165)
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+UICornerMain.CornerRadius = UDim.new(0, 12)
+UICornerMain.Parent = MainFrame
+
+OpenBtn.Parent = ScreenGui
+OpenBtn.Text = "⚡ Zenith Hub"
+OpenBtn.Size = UDim2.new(0, 140, 0, 40)
+OpenBtn.Position = UDim2.new(0, 15, 1, -55)
+OpenBtn.Visible = false 
+OpenBtn.BackgroundColor3 = Color3.fromRGB(30, 144, 255)
+OpenBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+OpenBtn.Font = Enum.Font.GothamBold
+OpenBtn.TextSize = 13
+
+UICornerOpen.CornerRadius = UDim.new(0, 8)
+UICornerOpen.Parent = OpenBtn
+
+ToggleBtn.Parent = MainFrame
+ToggleBtn.Text = "✕"
+ToggleBtn.Size = UDim2.new(0, 24, 0, 24)
+ToggleBtn.Position = UDim2.new(1, -30, 0, 10)
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+ToggleBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+ToggleBtn.Font = Enum.Font.GothamBold
+local UICornerToggle = Instance.new("UICorner")
+UICornerToggle.CornerRadius = UDim.new(0, 6)
+UICornerToggle.Parent = ToggleBtn
+
+ToggleBtn.MouseButton1Click:Connect(function() MainFrame.Visible = false OpenBtn.Visible = true end)
+OpenBtn.MouseButton1Click:Connect(function() MainFrame.Visible = true OpenBtn.Visible = false end)
+
+Title.Parent = MainFrame
+Title.Text = "⚡ Zenith Hub"
+Title.Size = UDim2.new(1, -40, 0, 40)
+Title.Position = UDim2.new(0, 15, 0, 5)
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.BackgroundTransparency = 1
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 14
+Title.TextXAlignment = Enum.TextXAlignment.Left
+
+SpeedInput.Parent = MainFrame
+SpeedInput.PlaceholderText = "ใส่ความเร็ว..."
+SpeedInput.PlaceholderColor3 = Color3.fromRGB(120, 120, 140)
+SpeedInput.Size = UDim2.new(0, 170, 0, 36)
+SpeedInput.Position = UDim2.new(0, 15, 0, 50)
+SpeedInput.Text = ""
+SpeedInput.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+SpeedInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+SpeedInput.Font = Enum.Font.GothamMedium
+SpeedInput.TextSize = 12
+
+UICornerInput.CornerRadius = UDim.new(0, 8)
+UICornerInput.Parent = SpeedInput
+
+StartBtn.Parent = MainFrame
+StartBtn.Text = "เปิดใช้งานความเร็ว"
+StartBtn.BackgroundColor3 = Color3.fromRGB(30, 144, 255)
+StartBtn.Size = UDim2.new(0, 170, 0, 38)
+StartBtn.Position = UDim2.new(0, 15, 0, 102)
+StartBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+StartBtn.Font = Enum.Font.GothamBold
+StartBtn.TextSize = 13
+
+UICornerBtn.CornerRadius = UDim.new(0, 8)
+UICornerBtn.Parent = StartBtn
+
+------------------------------------------------------------------------------------------------------
+local player = game.Players.LocalPlayer
+local camera = game.Workspace.CurrentCamera
+local currentForce = 0
+local isMoving = false
+
+-- ระบบขับเคลื่อนฟิสิกส์แบบ "ความเร็ว" สำหรับบินและว่ายน้ำ
+game:GetService("RunService").Heartbeat:Connect(function()
+    if isMoving then
+        local char = player.Character
+        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+        local hum = char and char:FindFirstChild("Humanoid")
+        
+        if hrp and hum then
+            if hum.MoveDirection.Magnitude > 0 then
+                local isSwimming = hum:GetState() == Enum.HumanoidStateType.Swimming
+                local isFlying = (hum:GetState() == Enum.HumanoidStateType.Freefall or hum:GetState() == Enum.HumanoidStateType.Climbing)
+                
+                if isSwimming or isFlying then
+                    local lookDirection = camera.CFrame.LookVector
+                    local rawMove = hum.MoveDirection
+                    local combinedDirection = Vector3.new(rawMove.X, lookDirection.Y * rawMove.Magnitude, rawMove.Z).Unit
+                    
+                    hrp.AssemblyLinearVelocity = combinedDirection * (currentForce * 1.5)
+                else
+                    local targetVelocity = hum.MoveDirection * currentForce
+                    if hrp.AssemblyLinearVelocity.Y > 50 or hrp.AssemblyLinearVelocity.Y < -50 then
+                        hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+                    else
+                        hrp.AssemblyLinearVelocity = Vector3.new(targetVelocity.X, hrp.AssemblyLinearVelocity.Y, targetVelocity.Z)
+                    end
+                end
+            else
+                if hum:GetState() ~= Enum.HumanoidStateType.Swimming then
+                    hrp.AssemblyLinearVelocity = Vector3.new(0, hrp.AssemblyLinearVelocity.Y, 0)
+                end
+            end
+        end
+    end
+end)
+
+-- ระบบกดเปิด/ปิดการทำงานในปุ่มเดียว (Toggle)
+StartBtn.MouseButton1Click:Connect(function()
+    isMoving = not isMoving -- สลับสถานะ เปิด/ปิด
+    
+    if isMoving then
+        local val = tonumber(SpeedInput.Text)
+        if val then 
+            currentForce = val 
+            StartBtn.Text = "ปิดความเร็ว (" .. val .. ")" 
+            StartBtn.BackgroundColor3 = Color3.fromRGB(0, 255, 0) -- เปลี่ยนเป็นสีแดงตอนเปิดใช้งานอยู่
+        else
+            isMoving = false
+            StartBtn.Text = "กรุณาใส่ตัวเลข!"
+            task.wait(1)
+            StartBtn.Text = "เปิดใช้งานความเร็ว"
+        end
+    else
+        currentForce = 0
+        StartBtn.Text = "เปิดใช้งานความเร็ว"
+        StartBtn.BackgroundColor3 = Color3.fromRGB(30, 144, 255) -- กลับเป็นสีฟ้าตอนปิด
+    end
+end)
