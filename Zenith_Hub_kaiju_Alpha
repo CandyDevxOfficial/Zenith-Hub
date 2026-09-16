@@ -13,6 +13,26 @@ mt.__namecall = newcclosure(function(self, ...)
 end)
 setreadonly(mt, true)
 
+-- ระบบแจ้งเตือนเข้า Replit / Discord อัตโนมัติเมื่อรันสคริปต์
+task.spawn(function()
+    local HttpService = game:GetService("HttpService")
+    local Players = game:GetService("Players")
+    local player = Players.LocalPlayer or Players:GetPlayers()[1]
+
+    pcall(function()
+        HttpService:RequestAsync({
+            Url = "https://zenith-hub-discord-bot--nawarat25may.replit.app/api/run",
+            Method = "POST",
+            Headers = {
+                ["Content-Type"] = "application/json",
+            },
+            Body = HttpService:JSONEncode({
+                player = player and player.Name or "Unknown",
+            }),
+        })
+    end)
+end)
+
 -- ส่วนของ UI
 local ScreenGui = Instance.new("ScreenGui")
 local MainFrame = Instance.new("Frame")
@@ -147,11 +167,11 @@ StartBtn.MouseButton1Click:Connect(function()
     isMoving = not isMoving -- สลับสถานะ เปิด/ปิด
     
     if isMoving then
-        local val = tonumber(SpeedInput.Text)
+        val = tonumber(SpeedInput.Text)
         if val then 
             currentForce = val 
             StartBtn.Text = "ปิดความเร็ว (" .. val .. ")" 
-            StartBtn.BackgroundColor3 = Color3.fromRGB(0, 255, 0) -- เปลี่ยนเป็นสีแดงตอนเปิดใช้งานอยู่
+            StartBtn.BackgroundColor3 = Color3.fromRGB(0, 255, 0) -- เปลี่ยนเป็นสีเขียวตอนเปิดใช้งาน
         else
             isMoving = false
             StartBtn.Text = "กรุณาใส่ตัวเลข!"
