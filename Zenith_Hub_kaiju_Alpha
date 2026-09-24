@@ -71,7 +71,7 @@ OverlayCorner.Parent = Overlay
 -- ปุ่มเปิดหน้าต่าง (Open Button)
 local OpenBtn = Instance.new("ImageButton")
 OpenBtn.Parent = ScreenGui
-OpenBtn.Image = "rbxthumb://type=Asset&id=115532531438169&w=420&h=420"
+OpenBtn.Image = "rbxthumb://type=Asset&id=88147388173113&w=420&h=420"
 OpenBtn.Size = UDim2.new(0, 50, 0, 50)
 OpenBtn.Position = UDim2.new(0, 15, 1, -65)
 OpenBtn.Visible = false 
